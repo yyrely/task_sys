@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chuncongcong.task.dao.mapper.ext.TaskUpdateExtMapper">
+
+    <resultMap id="TaskUpdateMap" type="com.chuncongcong.task.model.entity.TaskUpdate">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="task_id" jdbcType="BIGINT" property="taskId"/>
+        <result column="update_user" jdbcType="VARCHAR" property="updateUser"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="TINYINT" property="state"/>
+    </resultMap>
+    <update id="removeTaskUpdate">
+        update task_update
+        set state = 0
+        where task_id = #{taskId}
+    </update>
+
+    <select id="getTaskUpdateList" resultMap="TaskUpdateMap">
+        SELECT
+          update_user,
+          update_time
+        from task_update
+        where task_id = #{taskId}
+        and state = 1
+        order by update_time desc
+    </select>
+</mapper>

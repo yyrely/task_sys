@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chuncongcong.task.dao.mapper.ext.UsersExtMapper">
+
+    <resultMap id="UsersResultMap" type="com.chuncongcong.task.model.entity.Users">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result property="portrait" column="portrait"/>
+        <result property="departmentId" column="department_id"/>
+        <result column="role" property="role"/>
+        <result column="position" property="position"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="mobilePhone" column="mobile_phone"/>
+        <result property="landlinePhone" column="landline_phone"/>
+        <result property="rank" column="rank"/>
+        <result property="praise" column="praise"/>
+    </resultMap>
+
+    <resultMap id="UsersVOResultMap" type="com.chuncongcong.task.model.vo.UsersVO">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="portrait" column="portrait"/>
+        <result property="role" column="role"/>
+        <result property="position" column="position"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="mobilePhone" column="mobile_phone"/>
+        <result property="landlinePhone" column="landline_phone"/>
+        <result property="rank" column="rank"/>
+        <result property="praise" column="praise"/>
+        <collection property="department" ofType="com.chuncongcong.task.model.entity.Department" >
+            <id property="id" column="department_id"/>
+            <result property="name" column="name"/>
+        </collection>
+    </resultMap>
+
+
+    <update id="updateUserPraise">
+        update users
+        set praise = praise + #{praise}
+        where id = #{userId}
+    </update>
+    <update id="updateUserRank">
+        update users
+        set rank = rank + #{num}
+        <where>
+            id in
+            <foreach item="userId" collection="userIds" open="(" separator="," close=")">
+                #{userId}
+            </foreach>
+        </where>
+    </update>
+
+    <select id="getUsersByUsername" resultMap="UsersResultMap">
+        select *
+        from users
+        where username = #{username} and state = 1
+    </select>
+
+    <select id="getUsersById" resultMap="UsersVOResultMap">
+        SELECT
+          u.id,
+          u.username,
+          u.portrait,
+          u.department_id,
+          d.name,
+          u.role,
+          u.position,
+          u.gender,
+          u.birthday,
+          u.mobile_phone,
+          u.landline_phone,
+          u.rank,
+          u.praise
+        from users u
+        inner join department d
+        on u.department_id = d.id
+        where u.id = #{userId} and u.state = 1
+    </select>
+
+    <select id="getUserList" resultMap="UsersVOResultMap">
+        select
+          id,
+          username,
+          portrait,
+          role,
+          position,
+          rank
+        from users
+        <where>
+            <if test="username!=null">
+                username like "%"#{username}"%"
+            </if>
+            <if test="departmentIds!=null">
+                department_id in
+                <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")" index="index">
+                    #{departmentId}
+                </foreach>
+            </if>
+            and state = 1
+        </where>
+        order by rank desc
+    </select>
+    <select id="batchUserList" resultMap="UsersResultMap">
+        select
+        id,
+        username
+        from users
+        where state = 1
+        and id in
+        <foreach collection="userIds" index="index" item="userId" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+    </select>
+    <select id="getUserListByDepartmentId" resultMap="UsersResultMap">
+        select
+          id,
+          username,
+          role,
+          position
+        from users
+        where state = 1
+        and department_id = #{departmentId}
+        and department_id != 1
+    </select>
+</mapper>

@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chuncongcong.task.dao.mapper.ext.TaskExtMapper">
+
+    <resultMap id="TaskResultMap" type="com.chuncongcong.task.model.entity.Task">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="distanceEndTime" column="distance_end_time"/>
+        <result property="totalTime" column="total_time"/>
+        <result property="taskLevel" column="task_level"/>
+        <result property="sign" column="sign"/>
+        <result property="taskCurrentState" column="task_current_state"/>
+        <result property="taskSubmitState" column="task_submit_state"/>
+        <result property="taskType" column="task_type"/>
+        <result property="createUser" column="create_user"/>
+        <result property="extFile" column="ext_file"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="state" column="state"/>
+    </resultMap>
+
+    <resultMap id="TaskVOMap" type="com.chuncongcong.task.model.vo.TaskVO">
+        <id property="taskId" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="totalTime" column="total_time"/>
+        <result property="distanceEndTime" column="distance_end_time"/>
+        <result property="createUser" column="create_user"/>
+        <result property="taskType" column="task_type"/>
+        <result property="taskLevel" column="task_level"/>
+        <result property="taskCurrentState" column="task_current_state"/>
+        <result property="taskSubmitState" column="task_submit_state"/>
+        <result property="sign" column="sign"/>
+        <result property="extFile" column="ext_file" typeHandler="com.chuncongcong.task.handler.JsonTypeHandler"/>
+        <association property="managerUsers" column="id" select="getManagerId"/>
+    </resultMap>
+
+    <resultMap id="TaskInfoVOMap" type="com.chuncongcong.task.model.vo.TaskVO">
+        <id property="taskId" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="totalTime" column="total_time"/>
+        <result property="distanceEndTime" column="distance_end_time"/>
+        <result property="createUser" column="create_user"/>
+        <result property="taskType" column="task_type"/>
+        <result property="taskLevel" column="task_level"/>
+        <result property="taskCurrentState" column="task_current_state"/>
+        <result property="taskSubmitState" column="task_submit_state"/>
+        <result property="sign" column="sign"/>
+        <result property="extFile" column="ext_file" typeHandler="com.chuncongcong.task.handler.JsonTypeHandler"/>
+        <association property="managerUsers" column="id" select="getManagerId"/>
+        <association property="joinUsers" column="id" select="getJoinId"/>
+    </resultMap>
+
+    <resultMap id="UsersVOResultMap" type="com.chuncongcong.task.model.vo.UsersVO">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="portrait" column="portrait"/>
+        <result property="role" column="role"/>
+        <result property="position" column="position"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="mobilePhone" column="mobile_phone"/>
+        <result property="landlinePhone" column="landline_phone"/>
+        <result property="rank" column="rank"/>
+        <result property="praise" column="praise"/>
+        <collection property="taskVOList" ofType="com.chuncongcong.task.model.vo.TaskVO">
+            <id property="taskId" column="task_id"/>
+            <result property="parentId" column="parent_id"/>
+            <result property="name" column="task_name"/>
+            <result property="description" column="description"/>
+            <result property="startTime" column="start_time"/>
+            <result property="endTime" column="end_time"/>
+            <result property="totalTime" column="total_time"/>
+            <result property="distanceEndTime" column="distance_end_time"/>
+            <result property="taskCurrentState" column="task_current_state"/>
+            <result property="taskSubmitState" column="task_submit_state"/>
+            <result property="sign" column="sign"/>
+            <result property="extFile" column="ext_file" typeHandler="com.chuncongcong.task.handler.JsonTypeHandler"/>
+            <association property="managerUsers" column="task_id" select="getManagerId"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="SimpleUsersVOResultMap" type="com.chuncongcong.task.model.vo.UsersVO">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result property="portrait" column="portrait"/>
+        <result column="role" property="role"/>
+        <result column="position" property="position"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="mobilePhone" column="mobile_phone"/>
+        <result property="landlinePhone" column="landline_phone"/>
+        <result property="rank" column="rank"/>
+        <result property="praise" column="praise"/>
+    </resultMap>
+
+    <resultMap id="TaskStateVOResultMap" type="com.chuncongcong.task.model.vo.TaskStateVO">
+        <result property="taskCurrentState" column="task_current_state"/>
+        <result property="num" column="num"/>
+    </resultMap>
+
+    <update id="removeTask">
+        update task
+        set state = 0
+        where id = #{taskId}
+        or parent_id = #{taskId}
+    </update>
+
+    <select id="getTaskList" resultMap="TaskVOMap">
+        SELECT distinct
+        t.id id,
+        t.parent_id,
+        t.name name,
+        t.description,
+        t.start_time,
+        t.task_type,
+        t.end_time,
+        t.total_time,
+        t.distance_end_time,
+        t.task_current_state,
+        t.task_submit_state,
+        t.sign,
+        t.ext_file
+        FROM
+        users u
+        INNER JOIN task_user tu
+        ON u.id = tu.user_id
+        INNER JOIN task t
+        ON t.id = tu.task_id
+        <where>
+            u.state = 1
+            and t.state = 1
+            and t.parent_id = #{taskCondition.parentId}
+            <if test="taskCondition.taskType!=null">
+                and task_type = #{taskCondition.taskType}
+            </if>
+            <if test="taskCondition.userIds!=null">
+                and u.id in
+                <foreach collection="taskCondition.userIds" item="userId" index="index" open="(" separator=","
+                         close=")">
+                    #{userId}
+                </foreach>
+            </if>
+            <if test="taskCondition.departmentIds!=null">
+                and u.department_id in
+                <foreach collection="taskCondition.departmentIds" item="departmentId" index="index" open="("
+                         separator=","
+                         close=")">
+                    #{departmentId}
+                </foreach>
+            </if>
+
+        </where>
+        order by t.end_time
+    </select>
+
+    <select id="getUsersTask" resultMap="UsersVOResultMap">
+        select distinct
+        u.id,
+        u.username,
+        t.id task_id,
+        t.parent_id,
+        t.task_type,
+        t.name task_name,
+        t.description,
+        t.start_time,
+        t.end_time,
+        t.total_time,
+        t.distance_end_time,
+        t.task_current_state,
+        t.task_submit_state,
+        t.sign,
+        t.ext_file
+        from users u
+        left join task_user tu
+        on u.id = tu.user_id
+        inner join task t
+        on t.id = tu.task_id
+        <where>
+            u.id in
+            <foreach collection="userIds" item="userId" index="index" open="(" separator="," close=")">
+                #{userId}
+            </foreach>
+            and u.state = 1
+            and t.state = 1
+            and tu.state = 1
+            and t.parent_id = 0
+        </where>
+        order by t.end_time
+    </select>
+
+    <select id="getManagerId" resultMap="SimpleUsersVOResultMap">
+        select
+        u.id id,
+        u.username
+        from task_user tu
+          inner join users u
+          on tu.user_id = u.id
+        where tu.task_id = #{taskId}
+        and tu.task_position = 2
+        and tu.state = 1
+        and u.state = 1
+    </select>
+
+    <select id="getJoinId" resultMap="SimpleUsersVOResultMap">
+        select
+        u.id id,
+        u.username
+        from task_user tu
+          inner join users u
+          on tu.user_id = u.id
+        where tu.task_id = #{taskId}
+        and tu.task_position = 1
+        and tu.state = 1
+        and u.state = 1
+    </select>
+
+    <select id="getTaskInfo" resultMap="TaskInfoVOMap">
+        select distinct
+          t.id,
+          t.name,
+          t.description,
+          t.start_time,
+          t.end_time,
+          t.total_time,
+          t.distance_end_time,
+          t.task_level,
+          t.task_type,
+          t.task_current_state,
+          t.task_submit_state,
+          t.sign,
+          t.ext_file,
+          t.create_user,
+          t.create_time,
+          t.update_time
+        from task t
+        inner join task_user tu
+        on t.id = tu.task_id
+        where t.id = #{taskId}
+        and t.state = 1
+        and tu.state = 1
+    </select>
+
+    <select id="getTaskNumByState" resultMap="TaskStateVOResultMap">
+        SELECT
+        t.task_current_state,
+        COUNT(*) num
+        FROM task t
+        INNER JOIN task_user tu
+        ON t.id = tu.task_id
+        <where>
+            <if test="startTime!=null and endTime!=null">
+                ((distance_end_time &lt;= 0 and start_time &lt; #{endTime} and end_time > #{startTime})
+                OR (distance_end_time > 0 and start_time &lt; #{endTime} and (end_time + distance_end_time *24 *3600) >
+                #{startTime}))
+            </if>
+            and tu.user_id = #{userId}
+            and t.state = 1
+        </where>
+        group by t.task_current_state
+        order by t.task_current_state desc;
+    </select>
+    <select id="getTaskListByTime" resultMap="TaskResultMap">
+        SELECT distinct
+        t.id id,
+        t.name,
+        t.start_time,
+        t.end_time,
+        t.total_time,
+        t.distance_end_time,
+        t.task_current_state,
+        t.task_submit_state,
+        t.sign
+        FROM task t
+        INNER JOIN task_user tu
+        ON t.id = tu.task_id
+        where ((distance_end_time &lt;= 0 and start_time &lt; #{endDateTime} and end_time > #{startDateTime})
+        OR (distance_end_time > 0 and start_time &lt; #{endDateTime} and (end_time + distance_end_time *24 *3600) > #{startDateTime}))
+        and tu.user_id = #{userId}
+        and t.state = 1;
+    </select>
+
+    <select id="getTask" resultMap="TaskResultMap">
+        select * from task
+        where id = #{taskId}
+    </select>
+    <select id="getNowadaysTask" resultMap="TaskResultMap">
+        SELECT distinct
+        t.id,
+        t.name,
+        t.description,
+        t.end_time,
+        t.task_current_state
+        from task t
+        inner join task_user tu
+        on t.id = tu.task_id
+        where tu.user_id = #{userId}
+        and t.state = 1
+        and t.parent_id = 0
+        and tu.state = 1
+        and t.task_current_state not in(5,6)
+        order by t.end_time asc
+    </select>
+</mapper>

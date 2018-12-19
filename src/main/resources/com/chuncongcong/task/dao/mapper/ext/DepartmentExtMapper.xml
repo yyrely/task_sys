@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chuncongcong.task.dao.mapper.ext.DepartmentExtMapper">
+
+    <resultMap id="DepartmentResultMap" type="com.chuncongcong.task.model.entity.Department">
+        <id column="id" property="id"/>
+        <result property="name" column="name"/>
+        <result property="headId" column="head_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="state" column="state"/>
+    </resultMap>
+
+    <select id="getDepartmentList" resultMap="DepartmentResultMap">
+        select
+         id,
+         name
+        from department
+        where state = 1
+        and id != 1
+    </select>
+    <select id="getDepartment" resultMap="DepartmentResultMap">
+        select
+         id,
+         name
+        from department
+        where state = 1
+        and id = #{departmentId}
+    </select>
+</mapper>

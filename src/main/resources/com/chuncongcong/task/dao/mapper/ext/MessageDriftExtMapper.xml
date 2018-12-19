@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chuncongcong.task.dao.mapper.ext.MessageDriftExtMapper">
+
+    <resultMap id="DriftMessageMap" type="com.chuncongcong.task.model.entity.MessageDrift">
+        <id property="id" column="id"/>
+        <result property="fromUserId" column="from_user_id"/>
+        <result property="toUser" column="to_user"/>
+        <result property="message" column="message"/>
+        <result property="extFile" column="ext_file"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="state" column="state"/>
+    </resultMap>
+    <update id="removeDriftManager">
+        update message_drift
+        set state = 2
+        where id = #{driftId}
+    </update>
+
+    <select id="getDriftMessageList" resultMap="DriftMessageMap">
+        select
+          id,
+          from_user_id,
+          to_user,
+          message,
+          update_time
+        from message_drift
+        where from_user_id = #{fromUserId}
+        and state = 1
+    </select>
+    <select id="getDriftMessage" resultMap="DriftMessageMap">
+      select
+        id,
+        from_user_id,
+        to_user,
+        message,
+        ext_file,
+        update_time
+      from message_drift
+      where id = #{driftId}
+      and state = 1
+    </select>
+</mapper>

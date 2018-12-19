@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chuncongcong.task.dao.mapper.ext.TaskUserExtMapper">
+
+    <resultMap id="UsersResultMap" type="com.chuncongcong.task.model.entity.Users">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result property="portrait" column="portrait"/>
+        <result property="departmentId" column="department_id"/>
+        <result column="role" property="role"/>
+        <result column="position" property="position"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="mobilePhone" column="mobile_phone"/>
+        <result property="landlinePhone" column="landline_phone"/>
+        <result property="rank" column="rank"/>
+        <result property="praise" column="praise"/>
+    </resultMap>
+
+    <resultMap id="TaskUserRoleResultMap" type="com.chuncongcong.task.model.entity.TaskUser">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="task_position" property="taskPosition"/>
+    </resultMap>
+
+
+    <insert id="insertBatch">
+        insert into task_user
+        (user_id,task_id,task_position)
+        values
+        <foreach collection="taskUsers" index="idx" separator="," item="taskUser">
+            (#{taskUser.userId} ,#{taskUser.taskId},#{taskUser.taskPosition})
+        </foreach>
+    </insert>
+    <update id="removeTaskJoinUsers">
+        update task_user
+        set state = 0
+        where task_id = #{taskId}
+        <if test="delUserIds!=null">
+            and user_id in
+            <foreach item="delUserId" collection="delUserIds" open="(" separator="," close=")">
+                #{delUserId}
+            </foreach>
+        </if>
+    </update>
+    <select id="getUserIds" resultMap="TaskUserRoleResultMap">
+        select
+        user_id,
+        task_position
+        from task_user
+        where task_id = #{taskId}
+        and state = 1
+    </select>
+    <select id="getManagerUserId" resultType="java.lang.Long">
+        select
+        user_id
+        from task_user
+        where task_id = #{taskId}
+        and task_position = 2
+        and state = 1
+    </select>
+
+</mapper>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chuncongcong.task.dao.mapper.ext.MessageBoardExtMapper">
+
+    <resultMap id="MessageMap" type="com.chuncongcong.task.model.entity.MessageBoard">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="parent_id" jdbcType="BIGINT" property="parentId"/>
+        <result column="from_user_id" jdbcType="BIGINT" property="fromUserId"/>
+        <result column="to_user_id" jdbcType="BIGINT" property="toUserId"/>
+        <result column="is_read" jdbcType="TINYINT" property="isRead"/>
+        <result column="sign" jdbcType="TINYINT" property="sign"/>
+        <result column="ext_file" property="extFile"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="TINYINT" property="state"/>
+    </resultMap>
+    <resultMap id="MessageVOMap" type="com.chuncongcong.task.model.vo.MessageBoardVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result column="from_user_id" jdbcType="BIGINT" property="fromUserId"/>
+        <result property="fromUserName" column="from_user_name"/>
+        <result column="to_user_id" jdbcType="BIGINT" property="toUserId"/>
+        <result column="to_user_name" property="toUserName"/>
+        <result property="message" column="message"/>
+        <result property="isRead" column="is_read"/>
+        <result column="sign" property="sign"/>
+        <result property="extFile" column="ext_file" typeHandler="com.chuncongcong.task.handler.JsonTypeHandler"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="create_time" property="createTime"/>
+        <association property="comments" column="id" select="getCommentList"/>
+    </resultMap>
+
+    <resultMap id="CommentMap" type="com.chuncongcong.task.model.vo.MessageBoardVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="portrait" column="portrait"/>
+        <result property="fromUserName" column="from_user_name"/>
+        <result property="message" column="message"/>
+        <result property="isRead" column="is_read"/>
+        <result column="sign" property="sign"/>
+        <result column="ext_file" property="extFile" typeHandler="com.chuncongcong.task.handler.JsonTypeHandler"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="getMessageList" resultMap="MessageVOMap">
+        select
+        mb.id,
+        mb.from_user_id,
+        u1.username from_user_name,
+        mb.to_user_id,
+        u2.username to_user_name,
+        mb.message,
+        mb.is_read,
+        mb.sign,
+        mb.ext_file,
+        mb.update_time,
+        mb.create_time
+        from message_board mb
+        left join users u1
+        on u1.id = mb.from_user_id
+        left join users u2
+        on u2.id = mb.to_user_id
+        <where>
+            mb.state = 1
+            and mb.parent_id = 0
+            <if test="messageCondition.sign==null and messageCondition.fromUserId!=null">
+                and mb.from_user_id = #{messageCondition.fromUserId}
+            </if>
+            <if test="messageCondition.read!=null">
+                and mb.is_read = #{messageCondition.read}
+            </if>
+            <if test="messageCondition.sign==null and messageCondition.toUserId!=null">
+                and mb.to_user_id = #{messageCondition.toUserId}
+            </if>
+            <if test="messageCondition.sign!=null and messageCondition.fromUserId!=null and messageCondition.toUserId!=null">
+                and mb.sign = #{messageCondition.sign}
+                and (mb.from_user_id = #{messageCondition.fromUserId}
+                or mb.to_user_id = #{messageCondition.toUserId})
+            </if>
+        </where>
+    </select>
+
+    <select id="getMessageAndComment" resultMap="MessageVOMap">
+        select
+          mb.id,
+          mb.from_user_id,
+          u1.username from_user_name,
+          mb.to_user_id,
+          u2.username to_user_name,
+          mb.message,
+          mb.is_read,
+          mb.sign,
+          mb.ext_file,
+          mb.create_time
+        from message_board mb
+        left join users u1
+        on u1.id = mb.from_user_id
+        left join users u2
+        on u2.id = mb.to_user_id
+        where mb.id = #{messageId}
+        and mb.state = 1
+    </select>
+
+    <select id="getCommentList" resultMap="CommentMap">
+        select
+          mb.id,
+          mb.message,
+          u.username from_user_name,
+          u.portrait,
+          mb.is_read,
+          mb.create_time
+        from message_board mb
+        inner join users u
+        on mb.from_user_id = u.id
+        where mb.state = 1
+        and mb.parent_id = #{parentId}
+        order by mb.create_time asc
+    </select>
+
+    <select id="getMessage" resultMap="MessageMap">
+       select
+          mb.id,
+          mb.from_user_id,
+          u1.username from_user_name,
+          mb.to_user_id,
+          u2.username to_user_name,
+          mb.message,
+          mb.is_read,
+          mb.sign,
+          mb.create_time
+        from message_board mb
+        left join users u1
+        on u1.id = mb.from_user_id
+        left join users u2
+        on u2.id = mb.to_user_id
+        where mb.id = #{messageId}
+        and mb.state = 1
+    </select>
+
+    <update id="updateIsRead">
+        update message_board
+        set is_read = 2
+        where id in
+        <foreach collection="messageIds" index="index" item="messageId" separator="," open="(" close=")">
+            #{messageId}
+        </foreach>
+    </update>
+
+    <update id="removeMessage">
+        update message_board
+        set state = 0
+        where id = #{id} or parent_id = #{id}
+    </update>
+
+    <update id="removeComment">
+        update message_board
+        set state = 0
+        where id = #{id}
+    </update>
+
+    <update id="updateSign">
+        update message_board
+        set sign = #{sign}
+        where id = #{messageId}
+    </update>
+</mapper>
